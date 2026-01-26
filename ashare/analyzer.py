@@ -512,7 +512,7 @@ class StockAnalyzer:
             
             # 获取股票的完整数据
             stock_code = None
-            for code, name in self.stock_codes.items():
+            for name, code in self.stock_names.items():
                 if name == stock_name:
                     stock_code = code
                     break
@@ -523,35 +523,80 @@ class StockAnalyzer:
             
             df = self.processed_data_dict[stock_code]
             
+            # 计算更多统计数据
+            current_price = df.iloc[-1]['close']
+            price_5d_ago = df.iloc[-6]['close'] if len(df) >= 6 else current_price
+            price_10d_ago = df.iloc[-11]['close'] if len(df) >= 11 else current_price
+            price_20d_ago = df.iloc[-21]['close'] if len(df) >= 21 else current_price
+            price_30d_ago = df.iloc[-31]['close'] if len(df) >= 31 else current_price
+            
             # 构建详细的单股分析数据
             detailed_data = {
                 'name': stock_name,
                 'code': stock_code,
                 'analysis_depth': analysis_depth,
                 'price_data': {
-                    'current': df.iloc[-1]['close'],
+                    'current': current_price,
+                    'open': df.iloc[-1]['open'],
+                    'high': df.iloc[-1]['high'],
+                    'low': df.iloc[-1]['low'],
                     'high_52w': df['high'].max(),
                     'low_52w': df['low'].min(),
+                    'high_52w_date': df.loc[df['high'].idxmax(), 'date'] if 'date' in df.columns else None,
+                    'low_52w_date': df.loc[df['low'].idxmin(), 'date'] if 'date' in df.columns else None,
+                    'avg_price_5d': df.tail(5)['close'].mean(),
+                    'avg_price_10d': df.tail(10)['close'].mean(),
+                    'avg_price_20d': df.tail(20)['close'].mean(),
                     'avg_price_30d': df.tail(30)['close'].mean(),
-                    'volatility': df['close'].pct_change().std() * 100
+                    'volatility': df['close'].pct_change().std() * 100,
+                    'price_change_1d': self._calculate_change(df, 1),
+                    'price_change_5d': self._calculate_change(df, 5),
+                    'price_change_10d': self._calculate_change(df, 10),
+                    'price_change_20d': self._calculate_change(df, 20),
+                    'price_change_30d': self._calculate_change(df, 30),
+                    'price_position_52w': (current_price - df['low'].min()) / (df['high'].max() - df['low'].min()) * 100 if df['high'].max() != df['low'].min() else 50
                 },
                 'volume_data': {
                     'current': df.iloc[-1]['volume'],
+                    'avg_volume_5d': df.tail(5)['volume'].mean(),
+                    'avg_volume_10d': df.tail(10)['volume'].mean(),
+                    'avg_volume_20d': df.tail(20)['volume'].mean(),
                     'avg_volume_30d': df.tail(30)['volume'].mean(),
-                    'volume_trend': self._calculate_volume_trend(df)
+                    'volume_ratio': self._calculate_volume_ratio(df),
+                    'volume_trend': self._calculate_volume_trend(df),
+                    'max_volume_30d': df.tail(30)['volume'].max(),
+                    'min_volume_30d': df.tail(30)['volume'].min()
                 },
                 'technical_indicators': {
                     'rsi': df.iloc[-1].get('RSI', 0),
+                    'rsi_5d_ago': df.iloc[-6].get('RSI', 0) if len(df) >= 6 else 0,
+                    'rsi_10d_ago': df.iloc[-11].get('RSI', 0) if len(df) >= 11 else 0,
                     'macd': df.iloc[-1].get('MACD', 0),
+                    'macd_signal': df.iloc[-1].get('MACD_Signal', 0),
+                    'macd_hist': df.iloc[-1].get('MACD_Hist', 0),
                     'ma5': df.iloc[-1].get('MA5', 0),
+                    'ma10': df.iloc[-1].get('MA10', 0) if 'MA10' in df.columns else 0,
                     'ma20': df.iloc[-1].get('MA20', 0),
+                    'ma30': df.iloc[-1].get('MA30', 0) if 'MA30' in df.columns else 0,
+                    'ma60': df.iloc[-1].get('MA60', 0) if 'MA60' in df.columns else 0,
                     'bollinger_upper': df.iloc[-1].get('BOLL_UB', 0),
-                    'bollinger_lower': df.iloc[-1].get('BOLL_LB', 0)
+                    'bollinger_middle': df.iloc[-1].get('BOLL', 0),
+                    'bollinger_lower': df.iloc[-1].get('BOLL_LB', 0),
+                    'bollinger_width': (df.iloc[-1].get('BOLL_UB', 0) - df.iloc[-1].get('BOLL_LB', 0)) / df.iloc[-1].get('BOLL', 1) * 100 if df.iloc[-1].get('BOLL', 0) > 0 else 0,
+                    'momentum': self._calculate_momentum(df)
                 },
                 'trend_analysis': {
                     'direction': self._calculate_trend_direction(df),
                     'strength': self._calculate_trend_strength(df),
-                    'support_resistance': self._calculate_support_resistance(df)
+                    'support_resistance': self._calculate_support_resistance(df),
+                    'breakout_potential': self._calculate_breakout_potential(df)
+                },
+                'recent_performance': {
+                    'best_day_30d': df.tail(30)['close'].pct_change().max() * 100,
+                    'worst_day_30d': df.tail(30)['close'].pct_change().min() * 100,
+                    'up_days_30d': (df.tail(30)['close'].pct_change() > 0).sum(),
+                    'down_days_30d': (df.tail(30)['close'].pct_change() < 0).sum(),
+                    'avg_daily_change': df.tail(30)['close'].pct_change().mean() * 100
                 }
             }
             

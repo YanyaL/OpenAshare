@@ -1,120 +1,59 @@
-# 📈 Ashare AI Strategy Analyst
+# 📈 A股AI量化分析系统
 
-> 一个基于AI的A股智能分析系统，提供技术分析、交易信号和智能投资建议。
+> **智能选股 · 技术分析 · 交易信号 · AI洞察** | 专为中国股民打造
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.36+-red.svg)](https://streamlit.io/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/ZhiweiChen-coder/Ashare-AI-Strategy-Analyst?style=social)](https://github.com/ZhiweiChen-coder/Ashare-AI-Strategy-Analyst)
 
-## ✨ 项目特色
+## ✨ 核心功能
 
-- 🎯 **智能评分系统**：1-5分制评估股票走势（看涨/中性/看跌）
-- 🤖 **AI驱动分析**：集成DeepSeek/OpenAI，提供专业投资建议
-- 📊 **25+技术指标**：RSI, MACD, 布林带等全面技术分析
-- 🔍 **智能搜索**：支持股票代码、名称、行业关键词搜索
-- 📈 **实时数据**：获取最新股票行情和技术指标
-- 🎨 **现代化界面**：美观的Streamlit Web界面
+- 🎯 **智能评分** - 1-5分制精准评估股票走势
+- 🤖 **AI分析** - 集成DeepSeek/OpenAI智能洞察
+- 📊 **25+指标** - MACD、RSI、KDJ、布林带等全面分析
+- 🔍 **快速搜索** - 股票代码、名称、行业一键查询
+- 📈 **实时行情** - 获取最新股票数据和技术指标
+- 📝 **生成报告** - 导出专业的HTML分析报告
+- 🎨 **现代界面** - 美观易用的Web操作界面
 
-## 🚀 快速开始
+## 🚀 3分钟快速开始
 
-### 1️⃣ 克隆项目
 ```bash
-git clone https://github.com/your-repo/Ashare-AI-Strategy-Analyst.git
+# 1. 克隆仓库
+git clone https://github.com/ZhiweiChen-coder/Ashare-AI-Strategy-Analyst.git
 cd Ashare-AI-Strategy-Analyst
-```
 
-### 2️⃣ 安装依赖
-```bash
+# 2. 安装依赖
 pip install -r config/requirements.txt
-```
 
-### 3️⃣ 配置API密钥
-```bash
-# 编辑项目根目录的 .env 文件
+# 3. 配置API密钥（复制示例，填入你的密钥）
+cp config/.env.example .env
 nano .env
-```
 
-添加您的LLM API配置：
-```env
-LLM_API_KEY=your_api_key_here
-LLM_BASE_URL=https://api.deepseek.com
-LLM_MODEL=deepseek-chat
-```
-
-### 4️⃣ 启动应用
-
-**Web应用（推荐）：**
-```bash
+# 4. 启动应用
 streamlit run streamlit_app.py
-# 或使用脚本
-./scripts/run_web.sh
 ```
 
-访问：http://localhost:8501
+打开浏览器：**http://localhost:8501** ✨
 
-**命令行版本：**
-```bash
-python main.py
-# 或使用脚本
-./scripts/run_cli.sh
-```
-
-## 📁 项目结构（v2.0 重构版）
+## 📁 项目结构
 
 ```
 Ashare-AI-Strategy-Analyst/
-│
-├── 📱 app/                      # Streamlit Web应用
-│   ├── app_config.py            # 应用配置和路由
-│   ├── styles.py                # 统一样式管理
-│   └── pages/                   # 功能页面
-│       ├── home_page.py         # 首页
-│       ├── config_page.py       # 配置页面（股票池管理）
-│       ├── analysis_page.py     # 分析页面
-│       ├── charts_page.py       # 图表页面
-│       └── ai_insights_page.py  # AI洞察页面
-│
-├── 🔧 ashare/                   # 核心业务模块
-│   ├── analyzer.py              # 股票分析引擎
-│   ├── data.py                  # 数据获取（AKShare）
-│   ├── indicators.py            # 技术指标计算（25+指标）
-│   ├── charts.py                # 交互式图表生成
-│   ├── report.py                # HTML报告生成
-│   ├── signals.py               # 交易信号分析（含评分系统）
-│   ├── search.py                # 智能股票搜索
-│   ├── llm.py                   # AI分析（DeepSeek/OpenAI）
-│   ├── strategy.py              # 量化策略
-│   ├── helpers.py               # 辅助工具函数
-│   ├── logging.py               # 统一日志管理
-│   ├── notify.py                # 推送通知
-│   └── config.py                # 配置管理（环境变量）
-│
-├── 🎨 assets/                   # 静态资源
-│   ├── css/                     # 样式文件
-│   ├── fonts/                   # 字体文件
-│   └── templates/               # HTML模板
-│
-├── ⚙️ config/                   # 配置文件
-│   ├── requirements.txt         # Python依赖
-│   ├── .env.example             # 环境变量示例
-│   ├── Dockerfile               # Docker配置
-│   └── Procfile                 # 部署配置
-│
-├── 🚀 scripts/                  # 运行脚本
-│   ├── run_web.sh               # 启动Web应用
-│   └── run_cli.sh               # 启动命令行
-│
-├── 📝 docs/                     # 项目文档
-│   ├── README.md
-│   └── PROJECT_STRUCTURE.md
-│
-├── 📊 logs/                     # 日志文件
-├── 🗂️ _backup/                 # 旧版本备份
-├── 📄 streamlit_app.py          # Web应用主入口
-├── 📄 main.py                   # 命令行主入口
-├── 📄 .env                      # 环境配置（需自行创建）
-├── 📄 Ashare.py                 # 数据源模块
-└── 📄 MyTT.py                   # 技术指标库
+├── 📱 app/                 # Streamlit Web应用
+│   └── pages/             # 首页、配置、分析、图表、AI洞察
+├── 🔧 ashare/             # 核心分析模块
+│   ├── analyzer.py        # 分析引擎
+│   ├── indicators.py      # 25+技术指标
+│   ├── llm.py            # AI分析（DeepSeek/OpenAI）
+│   ├── signals.py        # 评分系统
+│   └── ...
+├── 🎨 assets/            # CSS、字体、HTML模板
+├── ⚙️ config/            # 配置文件和依赖
+├── 🚀 scripts/           # 启动脚本
+├── streamlit_app.py      # 应用入口
+└── .env                  # 环境变量（需自己创建）
 ```
 
 ## ✨ 核心功能

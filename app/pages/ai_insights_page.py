@@ -137,12 +137,12 @@ class AIInsightsPage:
             col3, col4 = st.columns(2)
             
             with col3:
-                include_macro = st.checkbox("包含宏观经济分析", value=True, key="include_macro")
-                include_industry = st.checkbox("包含行业分析", value=True, key="include_industry")
+                include_macro = st.checkbox("包含宏观经济分析", value=True, key="fundamental_include_macro")
+                include_industry = st.checkbox("包含行业分析", value=True, key="fundamental_include_industry")
             
             with col4:
-                include_competitors = st.checkbox("包含竞争对手分析", value=False, key="include_competitors")
-                risk_assessment = st.checkbox("深度风险评估", value=True, key="risk_assessment")
+                include_competitors = st.checkbox("包含竞争对手分析", value=False, key="fundamental_include_competitors")
+                risk_assessment = st.checkbox("深度风险评估", value=True, key="fundamental_risk_assessment")
         
         # 生成分析按钮
         if st.button("🔬 生成基本面分析", type="primary", key="generate_fundamental_btn", use_container_width=True):
@@ -190,44 +190,215 @@ class AIInsightsPage:
     def _render_single_stock_analysis(self):
         """渲染单股分析标签页"""
         st.markdown("### 🔍 单股深度分析")
+        st.markdown("选择股票进行AI驱动的深度分析，获得专业的投资建议")
         
         if not st.session_state.analysis_results:
-            st.warning("请先运行股票分析")
+            st.warning("⚠️ 请先运行股票分析")
             return
+        
+        # 创建两列布局
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+            # 股票选择
+            selected_stock = st.selectbox(
+                "📊 选择分析的股票",
+                list(st.session_state.analysis_results.keys()),
+                key="single_stock_selector",
+                help="从已分析的股票中选择一只进行深度分析"
+            )
             
-        selected_stock = st.selectbox(
-            "选择分析的股票",
-            list(st.session_state.analysis_results.keys()),
-            key="single_stock_selector"
-        )
+            # 分析深度选择
+            analysis_depth = st.radio(
+                "🎯 分析深度",
+                ["快速分析", "深度分析", "全面评估"],
+                index=1,
+                key="analysis_depth",
+                help="选择分析深度：快速分析适合短期交易，深度分析适合中期投资，全面评估适合长期投资"
+            )
+            
+            # 分析类型选择
+            analysis_type = st.multiselect(
+                "📋 分析类型",
+                ["技术分析", "基本面分析", "风险评估", "投资建议", "市场情绪"],
+                default=["技术分析", "投资建议"],
+                key="analysis_type_multiselect",
+                help="选择要包含的分析类型"
+            )
         
-        analysis_depth = st.radio(
-            "分析深度",
-            ["快速分析", "深度分析", "全面评估"],
-            index=1,
-            key="analysis_depth"
-        )
+        with col2:
+            # 显示选中股票的基本信息
+            if selected_stock:
+                st.markdown("#### 📈 股票信息")
+                stock_data = st.session_state.analysis_results.get(selected_stock)
+                if stock_data and 'data' in stock_data:
+                    df = stock_data['data']
+                    if not df.empty:
+                        current_price = df.iloc[-1]['close']
+                        price_change = df.iloc[-1]['close'] - df.iloc[-2]['close'] if len(df) > 1 else 0
+                        change_pct = (price_change / df.iloc[-2]['close'] * 100) if len(df) > 1 and df.iloc[-2]['close'] != 0 else 0
+                        
+                        st.metric(
+                            "当前价格",
+                            f"¥{current_price:.2f}",
+                            f"{change_pct:+.2f}%"
+                        )
+                        
+                        # 显示技术指标
+                        st.markdown("**技术指标**")
+                        if 'RSI' in df.columns:
+                            rsi = df.iloc[-1]['RSI']
+                            st.write(f"RSI: {rsi:.1f}")
+                        if 'MACD' in df.columns:
+                            macd = df.iloc[-1]['MACD']
+                            st.write(f"MACD: {macd:.3f}")
         
-        if st.button("🔍 生成深度分析", type="primary", key="generate_single_analysis_btn"):
-            with st.spinner(f"AI正在分析 {selected_stock}..."):
+        # 高级选项
+        with st.expander("🔧 高级分析选项", expanded=False):
+            col3, col4 = st.columns(2)
+            
+            with col3:
+                include_news = st.checkbox("包含新闻分析", value=False, key="single_stock_include_news")
+                include_sentiment = st.checkbox("包含情绪分析", value=True, key="single_stock_include_sentiment")
+                include_competitors = st.checkbox("包含竞争对手分析", value=False, key="single_stock_include_competitors")
+            
+            with col4:
+                risk_tolerance = st.selectbox(
+                    "风险偏好",
+                    ["保守型", "稳健型", "积极型", "激进型"],
+                    index=1,
+                    key="risk_tolerance"
+                )
+                investment_horizon = st.selectbox(
+                    "投资周期",
+                    ["短期(1-3个月)", "中期(3-12个月)", "长期(1-3年)"],
+                    index=1,
+                    key="investment_horizon"
+                )
+        
+        # 分析历史记录
+        if 'single_stock_analysis_history' not in st.session_state:
+            st.session_state.single_stock_analysis_history = {}
+        
+        # 显示历史分析
+        if selected_stock in st.session_state.single_stock_analysis_history:
+            st.markdown("#### 📚 历史分析记录")
+            history = st.session_state.single_stock_analysis_history[selected_stock]
+            
+            for i, (timestamp, analysis) in enumerate(history[-3:]):  # 显示最近3次分析
+                with st.expander(f"📅 {timestamp} - {analysis['depth']}", expanded=False):
+                    st.markdown(analysis['content'])
+                    if st.button(f"🗑️ 删除", key=f"delete_history_{i}"):
+                        history.pop(i)
+                        st.rerun()
+        
+        # 生成分析按钮
+        col5, col6 = st.columns([1, 1])
+        
+        with col5:
+            generate_btn = st.button(
+                "🔍 生成深度分析", 
+                type="primary", 
+                key="generate_single_analysis_btn",
+                use_container_width=True
+            )
+        
+        with col6:
+            if st.button("💾 保存当前分析", key="save_analysis_btn", use_container_width=True):
+                if 'current_single_stock_analysis' in st.session_state:
+                    self._save_analysis_to_history(selected_stock)
+                    st.success("✅ 分析已保存到历史记录")
+                else:
+                    st.warning("⚠️ 请先生成分析")
+        
+        if generate_btn:
+            with st.spinner(f"🤖 AI正在分析 {selected_stock}..."):
                 try:
                     if st.session_state.analyzer:
                         stock_data = st.session_state.analysis_results.get(selected_stock)
                         if stock_data:
+                            # 构建分析参数
+                            analysis_params = {
+                                'depth': analysis_depth,
+                                'types': analysis_type,
+                                'include_news': include_news,
+                                'include_sentiment': include_sentiment,
+                                'include_competitors': include_competitors,
+                                'risk_tolerance': risk_tolerance,
+                                'investment_horizon': investment_horizon
+                            }
+                            
                             ai_analysis = st.session_state.analyzer.generate_single_stock_analysis(
                                 selected_stock, stock_data, analysis_depth
                             )
+                            
                             if ai_analysis:
+                                # 保存当前分析到session state
+                                st.session_state.current_single_stock_analysis = {
+                                    'stock': selected_stock,
+                                    'depth': analysis_depth,
+                                    'content': ai_analysis,
+                                    'timestamp': pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')
+                                }
+                                
+                                # 显示分析结果
                                 st.markdown(f"### 📈 {selected_stock} 深度分析报告")
-                                st.markdown(ai_analysis)
+                                
+                                # 添加分析摘要
+                                st.markdown("#### 📋 分析摘要")
+                                summary_col1, summary_col2, summary_col3 = st.columns(3)
+                                
+                                with summary_col1:
+                                    st.metric("分析深度", analysis_depth)
+                                with summary_col2:
+                                    st.metric("分析类型", f"{len(analysis_type)}项")
+                                with summary_col3:
+                                    st.metric("风险偏好", risk_tolerance)
+                                
+                                # 显示详细分析
+                                st.markdown("#### 📊 详细分析")
+                                
+                                # 使用可展开的区域显示分析内容
+                                analysis_sections = self._parse_single_stock_analysis(ai_analysis)
+                                
+                                for section_title, section_content in analysis_sections.items():
+                                    with st.expander(f"📋 {section_title}", expanded=True):
+                                        st.markdown(section_content)
+                                
+                                # 添加操作按钮
+                                st.markdown("#### 🔧 操作")
+                                action_col1, action_col2, action_col3 = st.columns(3)
+                                
+                                with action_col1:
+                                    if st.button("📊 查看图表", key="view_charts_btn"):
+                                        st.session_state.page = "📈 图表"
+                                        st.rerun()
+                                
+                                with action_col2:
+                                    if st.button("📝 导出报告", key="export_report_btn"):
+                                        self._export_analysis_report(selected_stock, ai_analysis)
+                                
+                                with action_col3:
+                                    if st.button("🔄 重新分析", key="reanalyze_btn"):
+                                        st.rerun()
+                                
                             else:
-                                st.error("单股分析生成失败")
+                                st.error("❌ 单股分析生成失败")
                         else:
-                            st.error(f"未找到 {selected_stock} 的分析数据")
+                            st.error(f"❌ 未找到 {selected_stock} 的分析数据")
                     else:
-                        st.error("分析器未初始化")
+                        st.error("❌ 分析器未初始化")
                 except Exception as e:
-                    st.error(f"单股分析失败: {str(e)}")
+                    st.error(f"❌ 单股分析失败: {str(e)}")
+        
+        # 添加使用说明
+        st.info("""
+        💡 **单股分析使用说明**
+        - **快速分析**：适合短期交易，重点关注技术指标和短期趋势
+        - **深度分析**：适合中期投资，包含基本面推测和风险评估
+        - **全面评估**：适合长期投资，提供多维度综合分析和投资策略
+        - 分析结果会自动保存到历史记录，方便后续查看和对比
+        """)
     
     def _render_market_insights(self):
         """渲染市场洞察标签页"""
@@ -306,4 +477,105 @@ class AIInsightsPage:
         if len(sections) <= 1:
             sections = {"基本面分析": analysis_text}
         
-        return sections 
+        return sections
+    
+    def _save_analysis_to_history(self, stock_name: str):
+        """保存分析到历史记录"""
+        if 'current_single_stock_analysis' in st.session_state:
+            analysis = st.session_state.current_single_stock_analysis
+            
+            if stock_name not in st.session_state.single_stock_analysis_history:
+                st.session_state.single_stock_analysis_history[stock_name] = []
+            
+            # 添加到历史记录
+            st.session_state.single_stock_analysis_history[stock_name].append(
+                (analysis['timestamp'], analysis)
+            )
+            
+            # 保持最多10条历史记录
+            if len(st.session_state.single_stock_analysis_history[stock_name]) > 10:
+                st.session_state.single_stock_analysis_history[stock_name] = \
+                    st.session_state.single_stock_analysis_history[stock_name][-10:]
+    
+    def _parse_single_stock_analysis(self, analysis_text: str) -> Dict[str, str]:
+        """
+        解析单股分析文本，分割成不同的部分
+        
+        Args:
+            analysis_text: AI生成的单股分析文本
+            
+        Returns:
+            分割后的分析部分字典
+        """
+        sections = {}
+        
+        # 尝试按常见的标题分割
+        common_headers = [
+            "股票概况", "技术分析", "成交量分析", "风险评估", "投资建议",
+            "基本面分析", "市场情绪", "竞争对手分析", "总结", "操作建议"
+        ]
+        
+        current_section = "概述"
+        current_content = []
+        
+        lines = analysis_text.split('\n')
+        
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+                
+            # 检查是否是新的章节标题
+            is_header = False
+            for header in common_headers:
+                if header in line or any(keyword in line for keyword in ["##", "**", "###", "1.", "2.", "3.", "4.", "5."]):
+                    if current_content:
+                        sections[current_section] = '\n'.join(current_content)
+                        current_content = []
+                    current_section = line.replace('#', '').replace('*', '').replace('1.', '').replace('2.', '').replace('3.', '').replace('4.', '').replace('5.', '').strip()
+                    is_header = True
+                    break
+            
+            if not is_header:
+                current_content.append(line)
+        
+        # 添加最后一个部分
+        if current_content:
+            sections[current_section] = '\n'.join(current_content)
+        
+        # 如果没有找到标题，直接返回原文
+        if len(sections) <= 1:
+            sections = {"单股分析": analysis_text}
+        
+        return sections
+    
+    def _export_analysis_report(self, stock_name: str, analysis_content: str):
+        """导出分析报告"""
+        try:
+            # 创建报告内容
+            report_content = f"""
+# {stock_name} AI分析报告
+
+**生成时间**: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}
+**分析工具**: Ashare AI Strategy Analyst
+
+---
+
+{analysis_content}
+
+---
+
+*本报告由AI生成，仅供参考，不构成投资建议。投资有风险，入市需谨慎。*
+            """
+            
+            # 提供下载
+            st.download_button(
+                label="📥 下载分析报告",
+                data=report_content,
+                file_name=f"{stock_name}_AI分析报告_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.md",
+                mime="text/markdown",
+                key="download_report_btn"
+            )
+            
+        except Exception as e:
+            st.error(f"导出报告失败: {str(e)}") 

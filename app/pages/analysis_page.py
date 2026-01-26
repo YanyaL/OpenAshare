@@ -152,7 +152,10 @@ class AnalysisPage:
         
         with overview_cols[3]:
             analysis_time = st.session_state.current_analysis
-            st.metric("分析时间", analysis_time.strftime("%H:%M:%S"), analysis_time.strftime("%m-%d"))
+            if isinstance(analysis_time, datetime):
+                st.metric("分析时间", analysis_time.strftime("%H:%M:%S"), analysis_time.strftime("%m-%d"))
+            else:
+                st.metric("分析时间", "未知", "未知")
         
         # 详细结果
         st.markdown("---")

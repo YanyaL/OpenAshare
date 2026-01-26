@@ -832,43 +832,129 @@ class LLMAnalyzer:
             print(f"开始生成 {detailed_data['name']} 的单股分析...")
             
             # 构建单股分析数据
-            stock_info = f"单股深度分析 - {detailed_data['name']}：\n\n"
-            stock_info += f"股票代码: {detailed_data['code']}\n"
-            stock_info += f"分析深度: {detailed_data['analysis_depth']}\n\n"
+            stock_info = f"单股深度分析 - {detailed_data['name']} ({detailed_data['code']})：\n\n"
+            stock_info += f"分析深度: {detailed_data['analysis_depth']}\n"
+            stock_info += f"分析日期: {pd.Timestamp.now().strftime('%Y-%m-%d')}\n\n"
             
-            # 价格数据
+            # 价格数据（详细版）
             price_data = detailed_data['price_data']
-            stock_info += "价格数据：\n"
-            stock_info += f"当前价格: {price_data['current']:.2f}\n"
-            stock_info += f"52周最高: {price_data['high_52w']:.2f}\n"
-            stock_info += f"52周最低: {price_data['low_52w']:.2f}\n"
-            stock_info += f"30日均价: {price_data['avg_price_30d']:.2f}\n"
-            stock_info += f"价格波动率: {price_data['volatility']:.2f}%\n\n"
+            stock_info += "=" * 60 + "\n"
+            stock_info += "📊 价格数据详情\n"
+            stock_info += "=" * 60 + "\n"
+            stock_info += f"当前价格: {price_data['current']:.2f} 元\n"
+            stock_info += f"今日开盘: {price_data.get('open', 0):.2f} 元\n"
+            stock_info += f"今日最高: {price_data.get('high', 0):.2f} 元\n"
+            stock_info += f"今日最低: {price_data.get('low', 0):.2f} 元\n"
+            stock_info += f"52周最高: {price_data['high_52w']:.2f} 元"
+            if price_data.get('high_52w_date'):
+                stock_info += f" (日期: {price_data['high_52w_date']})"
+            stock_info += "\n"
+            stock_info += f"52周最低: {price_data['low_52w']:.2f} 元"
+            if price_data.get('low_52w_date'):
+                stock_info += f" (日期: {price_data['low_52w_date']})"
+            stock_info += "\n"
+            stock_info += f"52周价格位置: {price_data.get('price_position_52w', 0):.1f}% (0%为最低点, 100%为最高点)\n"
+            stock_info += f"\n移动平均线:\n"
+            stock_info += f"  5日均价: {price_data.get('avg_price_5d', 0):.2f} 元\n"
+            stock_info += f"  10日均价: {price_data.get('avg_price_10d', 0):.2f} 元\n"
+            stock_info += f"  20日均价: {price_data.get('avg_price_20d', 0):.2f} 元\n"
+            stock_info += f"  30日均价: {price_data['avg_price_30d']:.2f} 元\n"
+            stock_info += f"\n价格变化:\n"
+            stock_info += f"  1日涨跌: {price_data.get('price_change_1d', 0):.2f}%\n"
+            stock_info += f"  5日涨跌: {price_data.get('price_change_5d', 0):.2f}%\n"
+            stock_info += f"  10日涨跌: {price_data.get('price_change_10d', 0):.2f}%\n"
+            stock_info += f"  20日涨跌: {price_data.get('price_change_20d', 0):.2f}%\n"
+            stock_info += f"  30日涨跌: {price_data.get('price_change_30d', 0):.2f}%\n"
+            stock_info += f"\n价格波动率: {price_data['volatility']:.2f}% (标准差)\n\n"
             
-            # 成交量数据
+            # 成交量数据（详细版）
             volume_data = detailed_data['volume_data']
-            stock_info += "成交量数据：\n"
-            stock_info += f"当前成交量: {volume_data['current']:,.0f}\n"
-            stock_info += f"30日平均成交量: {volume_data['avg_volume_30d']:,.0f}\n"
-            stock_info += f"成交量趋势: {volume_data['volume_trend']}\n\n"
+            stock_info += "=" * 60 + "\n"
+            stock_info += "📈 成交量数据详情\n"
+            stock_info += "=" * 60 + "\n"
+            stock_info += f"当前成交量: {volume_data['current']:,.0f} 手\n"
+            stock_info += f"成交量比率: {volume_data.get('volume_ratio', 0):.2f} (当前/平均)\n"
+            stock_info += f"成交量趋势: {volume_data['volume_trend']}\n"
+            stock_info += f"\n平均成交量:\n"
+            stock_info += f"  5日平均: {volume_data.get('avg_volume_5d', 0):,.0f} 手\n"
+            stock_info += f"  10日平均: {volume_data.get('avg_volume_10d', 0):,.0f} 手\n"
+            stock_info += f"  20日平均: {volume_data.get('avg_volume_20d', 0):,.0f} 手\n"
+            stock_info += f"  30日平均: {volume_data['avg_volume_30d']:,.0f} 手\n"
+            stock_info += f"\n30日成交量区间:\n"
+            stock_info += f"  最大成交量: {volume_data.get('max_volume_30d', 0):,.0f} 手\n"
+            stock_info += f"  最小成交量: {volume_data.get('min_volume_30d', 0):,.0f} 手\n\n"
             
-            # 技术指标
+            # 技术指标（详细版）
             tech_indicators = detailed_data['technical_indicators']
-            stock_info += "技术指标：\n"
-            stock_info += f"RSI: {tech_indicators['rsi']:.2f}\n"
-            stock_info += f"MACD: {tech_indicators['macd']:.4f}\n"
-            stock_info += f"MA5: {tech_indicators['ma5']:.2f}\n"
-            stock_info += f"MA20: {tech_indicators['ma20']:.2f}\n"
-            stock_info += f"布林带上轨: {tech_indicators['bollinger_upper']:.2f}\n"
-            stock_info += f"布林带下轨: {tech_indicators['bollinger_lower']:.2f}\n\n"
+            stock_info += "=" * 60 + "\n"
+            stock_info += "🔍 技术指标详情\n"
+            stock_info += "=" * 60 + "\n"
+            stock_info += f"RSI相对强弱指标:\n"
+            stock_info += f"  当前RSI: {tech_indicators['rsi']:.2f}"
+            if tech_indicators['rsi'] > 70:
+                stock_info += " (超买区域)"
+            elif tech_indicators['rsi'] < 30:
+                stock_info += " (超卖区域)"
+            else:
+                stock_info += " (正常区域)"
+            stock_info += "\n"
+            if tech_indicators.get('rsi_5d_ago', 0) > 0:
+                stock_info += f"  5日前RSI: {tech_indicators['rsi_5d_ago']:.2f}\n"
+            if tech_indicators.get('rsi_10d_ago', 0) > 0:
+                stock_info += f"  10日前RSI: {tech_indicators['rsi_10d_ago']:.2f}\n"
+            
+            stock_info += f"\nMACD指标:\n"
+            stock_info += f"  MACD值: {tech_indicators['macd']:.4f}\n"
+            if tech_indicators.get('macd_signal', 0) != 0:
+                stock_info += f"  信号线: {tech_indicators['macd_signal']:.4f}\n"
+            if tech_indicators.get('macd_hist', 0) != 0:
+                hist_status = "金叉" if tech_indicators['macd_hist'] > 0 else "死叉"
+                stock_info += f"  柱状图: {tech_indicators['macd_hist']:.4f} ({hist_status})\n"
+            
+            stock_info += f"\n移动平均线:\n"
+            stock_info += f"  MA5: {tech_indicators['ma5']:.2f} 元\n"
+            if tech_indicators.get('ma10', 0) > 0:
+                stock_info += f"  MA10: {tech_indicators['ma10']:.2f} 元\n"
+            stock_info += f"  MA20: {tech_indicators['ma20']:.2f} 元\n"
+            if tech_indicators.get('ma30', 0) > 0:
+                stock_info += f"  MA30: {tech_indicators['ma30']:.2f} 元\n"
+            if tech_indicators.get('ma60', 0) > 0:
+                stock_info += f"  MA60: {tech_indicators['ma60']:.2f} 元\n"
+            
+            stock_info += f"\n布林带指标:\n"
+            stock_info += f"  上轨: {tech_indicators['bollinger_upper']:.2f} 元\n"
+            if tech_indicators.get('bollinger_middle', 0) > 0:
+                stock_info += f"  中轨: {tech_indicators['bollinger_middle']:.2f} 元\n"
+            stock_info += f"  下轨: {tech_indicators['bollinger_lower']:.2f} 元\n"
+            if tech_indicators.get('bollinger_width', 0) > 0:
+                stock_info += f"  带宽: {tech_indicators['bollinger_width']:.2f}% (反映波动性)\n"
+            
+            if tech_indicators.get('momentum', 0) != 0:
+                stock_info += f"\n动量指标: {tech_indicators['momentum']:.4f}\n"
             
             # 趋势分析
             trend_analysis = detailed_data['trend_analysis']
-            stock_info += "趋势分析：\n"
+            stock_info += "\n" + "=" * 60 + "\n"
+            stock_info += "📉 趋势分析\n"
+            stock_info += "=" * 60 + "\n"
             stock_info += f"趋势方向: {trend_analysis['direction']}\n"
-            stock_info += f"趋势强度: {trend_analysis['strength']:.2f}\n"
-            stock_info += f"支撑位: {trend_analysis['support_resistance']['support']:.2f}\n"
-            stock_info += f"阻力位: {trend_analysis['support_resistance']['resistance']:.2f}\n"
+            stock_info += f"趋势强度: {trend_analysis['strength']:.2f} (0-1之间，越大越强)\n"
+            stock_info += f"支撑位: {trend_analysis['support_resistance']['support']:.2f} 元\n"
+            stock_info += f"阻力位: {trend_analysis['support_resistance']['resistance']:.2f} 元\n"
+            if trend_analysis.get('breakout_potential'):
+                stock_info += f"突破潜力: {trend_analysis['breakout_potential']}\n"
+            
+            # 近期表现
+            if 'recent_performance' in detailed_data:
+                recent = detailed_data['recent_performance']
+                stock_info += "\n" + "=" * 60 + "\n"
+                stock_info += "📊 近期表现统计 (30日)\n"
+                stock_info += "=" * 60 + "\n"
+                stock_info += f"最佳单日涨幅: {recent.get('best_day_30d', 0):.2f}%\n"
+                stock_info += f"最差单日跌幅: {recent.get('worst_day_30d', 0):.2f}%\n"
+                stock_info += f"上涨天数: {recent.get('up_days_30d', 0)} 天\n"
+                stock_info += f"下跌天数: {recent.get('down_days_30d', 0)} 天\n"
+                stock_info += f"平均日涨跌: {recent.get('avg_daily_change', 0):.2f}%\n"
             
             # 根据分析深度调整系统提示词
             if detailed_data['analysis_depth'] == "快速分析":
@@ -878,38 +964,88 @@ class LLMAnalyzer:
             else:  # 全面评估
                 analysis_sections = "全面技术分析、基本面综合评估、多时间框架分析、风险收益比分析、长中短期策略、资金管理建议"
             
-            system_prompt = f"""你是一个专业的股票分析师。请对 {detailed_data['name']} 进行{detailed_data['analysis_depth']}。
+            system_prompt = f"""你是一位资深的股票分析师，拥有丰富的市场经验和深厚的技术分析功底。请对 {detailed_data['name']} ({detailed_data['code']}) 进行{detailed_data['analysis_depth']}。
+
+**重要要求：**
+1. 必须提供详细、全面、深入的分析，每个部分都要充分展开
+2. 分析内容要具体、有数据支撑，必须引用提供的数据，不能只是简单概括
+3. 每个部分至少包含3-5个要点，每个要点都要详细阐述，每个要点至少50-100字
+4. 总分析长度应在1500-3000字之间，确保内容非常充实和详细
+5. 使用专业术语，但也要通俗易懂
+6. 必须基于提供的数据进行分析，不能凭空猜测
+7. 每个数据点都要有分析和解读，不能只是罗列数据
 
 分析要求包含：{analysis_sections}
 
-请按以下结构进行分析：
+**报告格式要求：**
+请严格按照以下结构生成完整的分析报告，必须包含所有部分：
 
-## 1. 股票概况
-- 当前价格位置分析（相对52周区间）
-- 近期表现总结
+## 📈 {detailed_data['name']} 深度分析报告
 
-## 2. 技术分析
-- 技术指标解读（RSI、MACD、移动平均线、布林带）
-- 支撑阻力位分析
-- 趋势强度和方向判断
+### 📋 分析摘要
+- 分析深度：{detailed_data['analysis_depth']}
+- 分析日期：当前日期
+- 核心结论：用2-3句话总结最重要的分析结论
 
-## 3. 成交量分析
-- 成交量趋势变化
-- 量价关系分析
-- 资金流向判断
+### 📋 概述
+- 对股票当前整体状况的全面总结（200-300字）
+- 核心观点和主要结论
+- 当前市场位置和投资价值评估
 
-## 4. 风险评估
-- 价格波动风险
-- 技术风险信号
-- 关键风险点位
+## 1. 📊 股票概况
+- **当前价格位置分析**：详细分析当前价格在52周区间中的位置（高、中、低），百分比位置，历史分位数
+- **近期表现总结**：过去30天的价格走势、涨跌幅、波动特征
+- **价格波动率分析**：波动率水平、与历史对比、市场风险程度
+- **价格趋势特征**：短期、中期趋势方向，趋势的可持续性
 
-## 5. 投资建议
-- 具体的买卖建议
-- 目标价位设定
-- 止损点位建议
-- 适合的投资周期
+## 2. 🔍 技术分析
+- **技术指标深度解读**：
+  * RSI指标：当前数值、超买超卖状态、历史对比、信号强度
+  * MACD指标：金叉死叉状态、柱状图变化、趋势确认信号
+  * 移动平均线：MA5、MA20位置关系、多头/空头排列、支撑压力作用
+  * 布林带：价格在布林带中的位置、带宽变化、突破信号
+- **支撑阻力位分析**：关键支撑位和阻力位的具体价位、强度、突破概率
+- **趋势强度和方向判断**：趋势强度数值解读、方向确认、持续性评估
+- **技术形态识别**：是否存在明显的技术形态（头肩顶、双底等）
 
-请提供专业、详细的分析，并给出具体的操作建议。"""
+## 3. 📈 成交量分析
+- **成交量趋势变化**：近期成交量变化趋势、放量/缩量特征
+- **量价关系分析**：价涨量增/价跌量缩等关系、量价背离情况
+- **资金流向判断**：主力资金流入流出情况、散户参与度
+- **换手率分析**：换手率水平、市场活跃度、筹码集中度
+
+## 4. ⚠️ 风险评估
+- **价格波动风险**：波动率风险、价格回调风险、具体风险点位
+- **技术风险信号**：超买超卖风险、技术指标背离、趋势反转信号
+- **关键风险点位**：止损位、关键支撑位跌破风险、阻力位压力
+- **市场环境风险**：大盘风险、行业风险、个股特殊风险
+
+## 5. 💡 投资建议
+- **具体的买卖建议**：买入/卖出/持有建议，具体操作时机，必须基于前面的技术分析给出
+- **目标价位设定**：短期目标价（1-2周）、中期目标价（1-3个月）、目标价位的合理性分析，必须给出具体数值
+- **止损点位建议**：止损价位、止损比例、止损策略，必须给出具体数值
+- **适合的投资周期**：短线/中线/长线建议、持仓时间建议、理由说明
+- **仓位管理建议**：建议仓位比例、分批建仓策略、风险控制措施
+- **操作策略**：具体的操作步骤、注意事项、最佳入场/出场时机、关键观察点
+
+## 6. 📋 风险提示与免责声明
+必须在报告最后添加以下格式的免责声明：
+
+**📋 本分析报告基于公开数据和特定分析模型生成，仅作为信息参考和学术交流之用，不构成任何具体的投资建议。股票市场存在固有风险，投资者应基于自身独立判断进行决策，并承担相应风险。**
+
+**重要提示：**
+1. 以上分析仅供参考，不构成投资建议
+2. 投资有风险，入市需谨慎
+3. 请结合自身风险承受能力做出投资决策
+4. 建议咨询专业投资顾问
+
+**请确保：**
+1. 分析内容详细、专业、可操作，每个部分都要充分展开，不能只是简单概括
+2. 每个部分至少200-400字，确保内容丰富
+3. 必须引用和解读提供的数据，不能只是罗列
+4. 总报告长度应在1500-3000字之间
+5. 使用专业但易懂的语言
+6. 所有数据解读都要有逻辑支撑"""
 
             messages = [
                 {"role": "system", "content": system_prompt},
@@ -917,10 +1053,19 @@ class LLMAnalyzer:
             ]
             
             print("发送单股分析请求...")
+            # 根据分析深度设置不同的max_tokens
+            if detailed_data['analysis_depth'] == "快速分析":
+                max_tokens = 2000
+            elif detailed_data['analysis_depth'] == "深度分析":
+                max_tokens = 4000
+            else:  # 全面评估
+                max_tokens = 6000
+            
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
-                temperature=0.6,
+                temperature=0.7,  # 稍微提高温度以获得更丰富的表达
+                max_tokens=max_tokens,  # 设置足够的token数量
                 stream=False
             )
             
@@ -932,8 +1077,36 @@ class LLMAnalyzer:
                 print("单股分析响应为空")
                 return None
                 
+        except openai.APIConnectionError as ce:
+            print(f"=== API连接错误 ===")
+            print(f"生成单股分析失败: {str(ce)}")
+            print(f"错误类型: {type(ce)}")
+            print("可能的原因：")
+            print("1. 网络连接问题，请检查网络连接")
+            print("2. API服务不可用，请稍后重试")
+            print("3. 代理设置问题，请检查代理配置")
+            return None
+        except openai.APITimeoutError as te:
+            print(f"=== API超时错误 ===")
+            print(f"生成单股分析失败: {str(te)}")
+            print("请求超时，请稍后重试")
+            return None
+        except openai.RateLimitError as re:
+            print(f"=== API频率限制错误 ===")
+            print(f"生成单股分析失败: {str(re)}")
+            print("API调用频率过高，请稍后重试")
+            return None
+        except openai.APIError as ae:
+            print(f"=== API错误 ===")
+            print(f"生成单股分析失败: {str(ae)}")
+            print(f"错误类型: {type(ae)}")
+            return None
         except Exception as e:
+            print(f"=== 未预期的错误 ===")
             print(f"生成单股分析失败: {str(e)}")
+            print(f"错误类型: {type(e)}")
+            import traceback
+            traceback.print_exc()
             return None
 
     def generate_market_insights(self, market_data: Dict[str, Any]) -> Optional[str]:
