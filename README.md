@@ -1,8 +1,12 @@
 # OpenAshare
 
-A股 AI 分析工作台。当前仓库保留一套主界面：
+🤖 AI-Powered Chinese Stock Market Analysis. 一个基于 AI 的 A 股智能分析系统，提供技术分析、交易信号和智能投资建议。内置 **OpenClaw 内核**，Agent 编排与记忆采用本地优先、分层记忆与心跳总结，支持单股分析、消息与热点追踪、持仓管理与统一问答。
+
+当前主界面：
 
 - `FastAPI + Next.js`：面向“单股分析 + 消息 + 热点 + 持仓 + Agent”主链路。
+
+**如果你喜欢这个项目，欢迎在 GitHub 点个 Star ⭐**
 
 ## 界面预览
 
