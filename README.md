@@ -4,6 +4,20 @@ A股 AI 分析工作台。当前仓库保留一套主界面：
 
 - `FastAPI + Next.js`：面向“单股分析 + 消息 + 热点 + 持仓 + Agent”主链路。
 
+## 界面预览
+
+**首页 · 一站式 A 股智能盘面**
+
+![OpenAshare 首页](assets/screenshots/home.png)
+
+**消息页 · 全球新闻与 Agent 今日判断**
+
+![OpenAshare 消息页](assets/screenshots/news.png)
+
+**单股分析页 · 技术分析、相关新闻与 AI 分析**
+
+![OpenAshare 单股分析页](assets/screenshots/single-stock.png)
+
 ## Features
 
 - 单股分析：整合技术指标、信号总结和 AI 解读
