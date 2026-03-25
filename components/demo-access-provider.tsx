@@ -16,6 +16,24 @@ type DemoAccessContextValue = DemoAccessStatus & {
 
 const DemoAccessContext = createContext<DemoAccessContextValue | null>(null);
 
+async function readJsonResponse<T>(response: Response): Promise<T> {
+  const raw = await response.text();
+  if (!raw) {
+    return {} as T;
+  }
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    const trimmed = raw.trimStart();
+    if (trimmed.startsWith("<!DOCTYPE") || trimmed.startsWith("<html")) {
+      throw new Error(
+        "演示接口返回了 HTML 页面，通常是 Vercel 域名还在重定向，或者 /api/demo/access 没有落在当前主域上。请检查主域是否已经固定到 openashare.com。",
+      );
+    }
+    throw new Error("演示接口返回了非 JSON 响应");
+  }
+}
+
 export function DemoAccessProvider({
   children,
   initialStatus,
@@ -29,7 +47,7 @@ export function DemoAccessProvider({
 
   const refresh = useCallback(async () => {
     const response = await fetch(DEMO_ACCESS_STATUS_PATH, { cache: "no-store" });
-    const payload = (await response.json()) as DemoAccessStatus;
+    const payload = await readJsonResponse<DemoAccessStatus>(response);
     setStatus(payload);
     setLoaded(true);
   }, []);
@@ -41,7 +59,7 @@ export function DemoAccessProvider({
       body: JSON.stringify({ code }),
       cache: "no-store",
     });
-    const payload = (await response.json()) as DemoAccessStatus & { detail?: string };
+    const payload = await readJsonResponse<DemoAccessStatus & { detail?: string }>(response);
     if (!response.ok) {
       throw new Error(payload.detail || "演示密钥验证失败");
     }
@@ -55,7 +73,7 @@ export function DemoAccessProvider({
       method: "DELETE",
       cache: "no-store",
     });
-    const payload = (await response.json()) as DemoAccessStatus;
+    const payload = await readJsonResponse<DemoAccessStatus>(response);
     setStatus(payload);
     setLoaded(true);
   }, []);
