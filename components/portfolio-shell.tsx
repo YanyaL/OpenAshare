@@ -394,13 +394,13 @@ export function PortfolioShell({ initialPositions, initialAnalysis, initialPrefi
             <tbody>
               {positions.map((item) => (
                 <tr key={`${item.id}-${item.stock_code}`}>
-                  <td>
+                  <td data-label="股票">
                     {item.stock_name} ({item.stock_code})
                   </td>
-                  <td>{item.cost_price}</td>
-                  <td>{item.quantity}</td>
-                  <td>{item.weight_pct ?? "-"}</td>
-                  <td>
+                  <td data-label="成本价">{item.cost_price}</td>
+                  <td data-label="数量">{item.quantity}</td>
+                  <td data-label="仓位">{item.weight_pct ?? "-"}</td>
+                  <td data-label="操作">
                     <div className="inline-actions">
                       <button className="button ghost" type="button" onClick={() => fillForm(item)}>
                         编辑

@@ -94,14 +94,14 @@ export default async function StocksPage({ searchParams }: PageProps) {
               <tbody>
                 {searchResults.map((item) => (
                   <tr key={item.code}>
-                    <td>
+                    <td data-label="股票">
                       <Link href={`/stocks?query=${encodeURIComponent(item.code)}`}>
                         {item.name} ({item.code})
                       </Link>
                     </td>
-                    <td>{item.market}</td>
-                    <td>{item.category || "-"}</td>
-                    <td>{item.score}</td>
+                    <td data-label="市场">{item.market}</td>
+                    <td data-label="分类">{item.category || "-"}</td>
+                    <td data-label="评分">{item.score}</td>
                   </tr>
                 ))}
               </tbody>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 
-import { AppShell, Nav } from "@/components/app-shell";
+import { AppShell, AppShellProvider, Nav } from "@/components/app-shell";
 import { DemoAccessDialog } from "@/components/demo-access-dialog";
 import { DemoAccessProvider } from "@/components/demo-access-provider";
 import { DEMO_ACCESS_COOKIE_NAME } from "@/lib/demo-access";
@@ -28,11 +28,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body suppressHydrationWarning>
         <div className="shell">
           <div className="frame">
-            <DemoAccessProvider initialStatus={initialDemoAccess}>
-              <Nav />
-              <DemoAccessDialog />
-              <AppShell>{children}</AppShell>
-            </DemoAccessProvider>
+            <AppShellProvider>
+              <DemoAccessProvider initialStatus={initialDemoAccess}>
+                <Nav />
+                <DemoAccessDialog />
+                <AppShell>{children}</AppShell>
+              </DemoAccessProvider>
+            </AppShellProvider>
           </div>
         </div>
       </body>
